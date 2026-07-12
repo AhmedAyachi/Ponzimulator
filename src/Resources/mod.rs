@@ -1,8 +1,6 @@
-mod fetchUsers;
 use rand;
 
-
-pub use fetchUsers::*;
+mod AppCache;pub use AppCache::*;
 
 
 pub fn randomId(length:u16)->String{
@@ -18,10 +16,4 @@ pub fn randomId(length:u16)->String{
         id=id+c.to_string().as_str();
     };
     return id;
-}
-
-const CACHE_PATH:&str="./Cache/";
-pub fn readCache(basename:&str)->String{
-    let content=std::fs::read_to_string(CACHE_PATH.to_owned()+basename+".txt").expect("zadazd");
-    return content;
 }
