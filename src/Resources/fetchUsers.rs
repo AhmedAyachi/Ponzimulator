@@ -1,4 +1,5 @@
 use crate::Resources;
+use chrono::{DateTime};
 
 
 pub fn fetchUsers()->Vec<User>{
@@ -9,10 +10,10 @@ pub fn fetchUsers()->Vec<User>{
 
 #[derive(Debug)]
 pub struct User {
-    id:String,
-    name:String,
-    amount:f64,
-    joinedAt:u64,
+    pub id:String,
+    pub name:String,
+    pub amount:f64,
+    pub joinedAt:u64,
 } 
 impl User {
     pub fn new(data:&str)->Self{
@@ -26,5 +27,9 @@ impl User {
     }
     pub fn randomId()->String{
         return Resources::randomId(20);
+    }
+    pub fn getJoinDate(ms:u64)->String{
+        let datetime=DateTime::from_timestamp_millis(ms as i64).expect("");
+        return datetime.format("%d-%m-%Y %H:%M:%S").to_string();
     }
 }

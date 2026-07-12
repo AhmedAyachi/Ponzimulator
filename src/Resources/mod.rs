@@ -5,7 +5,6 @@ use rand;
 pub use fetchUsers::*;
 
 
-//let ranges
 pub fn randomId(length:u16)->String{
     let mut id=String::new();
     for _ in 0..length {
