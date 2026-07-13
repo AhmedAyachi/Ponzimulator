@@ -25,6 +25,7 @@ fn main(){
             match cmd.as_str() {
                 "list" => Scripts::list(args),
                 "cashin" => Scripts::cashIn(args),
+                "cashout" => Scripts::cashOut(args),
                 "start" => Scripts::start(args),
                 "stop" => Scripts::stop(args),
                 "status" => Scripts::status(args),

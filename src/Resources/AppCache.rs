@@ -122,7 +122,7 @@ pub struct Account {
         }
     }
     
-    pub fn depositAmount(&mut self,amount:f64){
+    pub fn transact(&mut self,amount:f64){
         self.pot+=amount;
         self.deposit+=amount;
         self.balance+=amount;

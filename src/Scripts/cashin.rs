@@ -21,7 +21,7 @@ pub fn cashIn(args:&mut Vec<String>){
             let mut accounts=Cache::fetchAccounts();
             if let Some(account)=accounts.iter_mut().find(|account| (account.id==accountId)&&(account.owner==owner)) {
                 let amount=balance.parse::<f64>().unwrap_or(0.0);
-                account.depositAmount(amount);
+                account.transact(amount);
                 Cache::saveAccounts(&accounts);
             } else {
                 println!("no account found");

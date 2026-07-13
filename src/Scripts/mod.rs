@@ -6,3 +6,4 @@ mod start;pub use start::*;
 mod cashin;pub use cashin::*;
 mod status;pub use status::*;
 mod select;pub use select::*;
+mod cashout;pub use cashout::*;
