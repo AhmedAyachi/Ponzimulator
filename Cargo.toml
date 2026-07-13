@@ -7,7 +7,18 @@ edition = "2021"
 name = "ponzimulator"
 path = "src/main.rs"
 
+[profile.dev]
+opt-level = 0
+debug = true
+incremental = true
+
+[profile.release]
+opt-level = 3
+debug = false
+lto = true
+panic = "abort"
+
+
 [dependencies]
 chrono = "0.4.45"
-daemonize = "0.5.0"
 rand = "0.9.5"

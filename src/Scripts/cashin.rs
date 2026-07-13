@@ -1,45 +1,42 @@
-use std::collections::VecDeque;
-use std::time::{Duration,SystemTime,UNIX_EPOCH};
-use crate::Resources::{Account,Cache};
+
+use crate::Resources::{Cache, Daemon};
 
 
-
-pub fn cashIn(args:&mut VecDeque<String>){
-    if args.len()==2 {//name amount
-        let amount=args[1].clone();
-        if amount.parse::<f64>().is_ok() {
-            let owner=args[0].clone();
-            let accountId=Account::randomId();
-            args.push_front(accountId.clone());
-            args.push_back(SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or(Duration::from_millis(0)).as_millis().to_string());
-            args.push_back(amount);
-            Cache::append("accounts",args.make_contiguous().join(" "));
-            println!("owner: {}",owner);
-            println!("account id: {}",accountId);
-        } else {
-            println!("second arg must be a number");
+pub fn cashIn(args:&mut Vec<String>){
+    if areValidArgs(args) {
+        let shouldRerun=Daemon::isRunning();
+        if shouldRerun { Daemon::stop().unwrap() };
+        if args.len()==2 {//name amount //adds a new account
+            if let Ok(account)=Cache::createAccount(args.clone()) {
+                println!("owner: {}",account.owner);
+                println!("account id: {}",account.id);
+            } else {
+                println!("Failed to create new account");
+            }
         }
-    }
-    else if args.len()==3 {//name accountId amount
-        let balance=args[2].to_owned();
-        if balance.parse::<f64>().is_ok() {
-            let owner=args[0].to_owned();
-            let accountId=args[1].to_owned();
+        else if args.len()==3 {//name accountId amount //adds amount to an existant account
+            let owner=args[0].clone();
+            let accountId=args[1].clone();
+            let balance=args[2].clone();
             let mut accounts=Cache::fetchAccounts();
             if let Some(account)=accounts.iter_mut().find(|account| (account.id==accountId)&&(account.owner==owner)) {
                 let amount=balance.parse::<f64>().unwrap_or(0.0);
-                account.balance+=amount;
-                account.totalPot+=amount;
+                account.depositAmount(amount);
                 Cache::saveAccounts(&accounts);
             } else {
                 println!("no account found");
             }
-        } else {
-            println!("third arg must be a number");
         }
+        if shouldRerun { _=Daemon::start() };
     } else {
-        println!("cashin accepts either 2 or 3 args.");
-        println!("owner balance #to create a new account");
-        println!("owner accountId balance #to add balance to an account");
+        println!("Invalid usage: cashin accepts either 2 or 3 args.");
+        println!("owner amount #to create a new account");
+        println!("owner accountId amount #to add balance to an account");
     }
+}
+
+fn areValidArgs(args:&Vec<String>)->bool{
+    if args.len()==2 { return args[1].parse::<f64>().is_ok() }
+    else if args.len()==3 { return args[2].parse::<f64>().is_ok() }
+    else { return false };
 }

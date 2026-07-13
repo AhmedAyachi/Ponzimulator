@@ -1,30 +1,73 @@
-use std::{fs::remove_file, process::Command, thread, time::Duration};
-use crate::Resources::Cache;
+use std::{env, fs::{File,remove_file}, io::{Error,ErrorKind, Write}, process::{Child, Command, Stdio}, thread, time::Duration};
+use rand::{Rng};
+use crate::Resources::{Cache, CashFlow};
 
 
 const PID_FILENAME:&str="daemon.pid";
 const STDOUT_FILENAME:&str="daemon.out";
 const STDERR_FILENAME:&str="daemon.err";
 
-pub struct Daemon {
-} impl Daemon {
+pub struct Daemon {} impl Daemon {
 
-    pub fn start(){
+    pub fn work(){
+        let mut cycleCount=0;
+        let mut accounts=Cache::fetchAccounts();
         loop {
-            thread::sleep(Duration::from_secs(5));
+            cycleCount+=1;
+            for account in &mut accounts {
+                let step=(0.02*account.balance).min(10.0);
+                let offset=rand::rng().random_range(-0.5..=0.5)*step;
+                account.balance+=offset;
+            }
+            if cycleCount>=10 {
+                cycleCount=0;
+                let amount=CashFlow::getPotentialEarnings(&accounts);
+                if amount>0.0 {
+                    let totalPot=CashFlow::getTotalPot(&accounts);
+                    let remainingRatio=(totalPot-amount)/totalPot;
+                    for account in &mut accounts {
+                        account.pot*=remainingRatio;
+                    }
+                    Cache::saveEarnedAmount(amount);
+                }
+            }
+            Cache::saveAccounts(&accounts);
+            thread::sleep(Duration::from_secs(2));
         }
     }
+    
 
-    pub fn stop(){
-        if let Ok(pid)=Cache::read(PID_FILENAME) {
-            println!("stopping process {pid}...");
+    pub fn stop()->Result<(),Error>{
+        if let Ok(pid)=Daemon::getPid() {
             let _=Command::new("kill").args(["-9",&pid]).status().
-            expect("couldn't kill process");
+            expect("couldn't kill daemon process");
             _=remove_file(Daemon::getStdErrFilePath());
             _=remove_file(Daemon::getStdOutFilePath());
             _=remove_file(Daemon::getPidFilePath());
-            println!("Daemon stopped.");
-        };
+            return Ok(());
+        } else {
+            return Err(Error::new(ErrorKind::Other,"Daemon already stopped."));
+        }
+    }
+
+    pub fn start()->Result<Child,Error>{
+        if Daemon::isRunning() {
+            return Err(Error::new(ErrorKind::Other,"Daemon already running."));
+        } else {
+            let stdout=File::create(Daemon::getStdOutFilePath()).expect("Couldn't create daemon stdout file");
+            let stderr=File::create(Daemon::getStdErrFilePath()).expect("Couldn't create daemon stderr file");
+            let currentExe=env::current_exe().expect("Failed to locate current executable");
+            let child=Command::new(currentExe).
+                arg("--daemon-worker").
+                stdout(Stdio::from(stdout)).
+                stderr(Stdio::from(stderr)).
+                spawn().expect("Couldn't run daemon")
+            ;
+            let childId=child.id().to_string();
+            let mut pidfile=File::create(Daemon::getPidFilePath()).unwrap();
+            pidfile.write(childId.as_bytes()).expect("failed to write daemon.pid");
+            return Ok(child);
+        }
     }
 
     pub fn getStatus()->String{
@@ -40,6 +83,11 @@ pub struct Daemon {
             Ok(_)=>true,
             Err(_)=>false,
         };
+    }
+
+    pub fn getPid()->Result<String,String>{
+        let pid=Cache::read(PID_FILENAME);
+        return pid;
     }
 
     pub fn getPidFilePath()->String{

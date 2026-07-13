@@ -1,13 +1,11 @@
-use std::collections::VecDeque;
-use crate::Resources::{Cache, Daemon};
+use crate::Resources::{Cache, CashFlow, Daemon};
 
 
-pub fn status(_args:&mut VecDeque<String>){
+pub fn status(_args:&mut Vec<String>){
     let accounts=Cache::fetchAccounts();
-    let income=accounts.iter().fold(0.0,|sum,account|{
-        return sum+account.totalPot-account.balance;
-    });
-    println!("daemon: {}",Daemon::getStatus());
-    println!("income: {}",income);
-    println!("accounts count: {}",accounts.len());
+    println!("Daemon: {}",Daemon::getStatus());
+    println!("Net Pot: {}",CashFlow::getNetPot(&accounts));
+    println!("Total Pot: {}",CashFlow::getTotalPot(&accounts));
+    println!("Earned Amount: {}",CashFlow::getEarnedAmount());
+    println!("Accounts Count: {}",accounts.len());
 }
