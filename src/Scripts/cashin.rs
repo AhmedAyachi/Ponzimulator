@@ -5,17 +5,22 @@ use crate::Resources::{Account,Cache};
 
 
 pub fn cashIn(args:&mut VecDeque<String>){
-    if args.len()==2 {
-        if args[1].parse::<f64>().is_ok() {
+    if args.len()==2 {//name amount
+        let amount=args[1].clone();
+        if amount.parse::<f64>().is_ok() {
+            let owner=args[0].clone();
+            let accountId=Account::randomId();
+            args.push_front(accountId.clone());
             args.push_back(SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or(Duration::from_millis(0)).as_millis().to_string());
-            args.push_front(Account::randomId());
-            let buffer=args.make_contiguous().join(" ");
-            Cache::append("accounts",buffer);
+            args.push_back(amount);
+            Cache::append("accounts",args.make_contiguous().join(" "));
+            println!("owner: {}",owner);
+            println!("account id: {}",accountId);
         } else {
             println!("second arg must be a number");
         }
     }
-    else if args.len()==3 {
+    else if args.len()==3 {//name accountId amount
         let balance=args[2].to_owned();
         if balance.parse::<f64>().is_ok() {
             let owner=args[0].to_owned();
@@ -32,8 +37,7 @@ pub fn cashIn(args:&mut VecDeque<String>){
         } else {
             println!("third arg must be a number");
         }
-    } 
-    else {
+    } else {
         println!("cashin accepts either 2 or 3 args.");
         println!("owner balance #to create a new account");
         println!("owner accountId balance #to add balance to an account");

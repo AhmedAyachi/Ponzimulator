@@ -1,5 +1,5 @@
 use std::collections::VecDeque;
-use crate::Resources::{Cache};
+use crate::Resources::{Cache, Daemon};
 
 
 pub fn status(_args:&mut VecDeque<String>){
@@ -7,7 +7,7 @@ pub fn status(_args:&mut VecDeque<String>){
     let income=accounts.iter().fold(0.0,|sum,account|{
         return sum+account.totalPot-account.balance;
     });
-    println!("daemon: stopped");
+    println!("daemon: {}",Daemon::getStatus());
     println!("income: {}",income);
     println!("accounts count: {}",accounts.len());
 }

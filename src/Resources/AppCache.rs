@@ -4,20 +4,28 @@ use crate::Resources::{self};
 use chrono::{DateTime};
 
 
-
-
 const CACHE_PATH:&str="./Cache/";
 pub struct Cache {
     
 } impl Cache {
 
-    pub fn read(basename:&str)->String{
-        let path=CACHE_PATH.to_owned()+basename+".txt";
+    pub fn getPath()->String{
+        return CACHE_PATH.to_owned();
+    }
+
+    /* pub fn getAccountsPath()->String{
+        return CACHE_PATH.to_owned()+"accounts.txt";
+    } */
+
+    pub fn read(fileName:&str)->Result<String,String>{
+        let path=CACHE_PATH.to_owned()+fileName;
         if std::fs::exists(&path).unwrap_or(false) {
             let content=std::fs::read_to_string(path).
-            expect(format!("Failed to read {basename} from cache").as_str());
-            return content;
-        } else { return String::new() };
+            expect(format!("Failed to read {fileName} from cache").as_str());
+            return Ok(content);
+        } else { 
+            return Err(String::from("No cached file with name: ")+fileName);
+        };
     }
 
     pub fn write(basename:&str,content:&str){
@@ -36,7 +44,7 @@ pub struct Cache {
     }
     
     pub fn fetchAccounts()->Vec<Account>{
-        let content=Cache::read("accounts");
+        let content=Cache::read("accounts.txt").unwrap();
         let accounts:Vec<Account>=content.lines().map(|it| Account::new(it)).collect();
         return accounts;
     }
@@ -59,10 +67,10 @@ pub struct Cache {
 #[derive(Debug)]
 pub struct Account {
     pub id:String,
-    pub totalPot:f64,
     pub owner:String,
-    pub createdAt:u64,
     pub balance:f64,
+    pub createdAt:u64,
+    pub totalPot:f64,
 } impl Account {
     pub fn new(data:&str)->Self{
         let details:Vec<&str>=data.split_whitespace().collect();

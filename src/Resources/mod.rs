@@ -1,6 +1,7 @@
 use rand;
 
 mod AppCache;pub use AppCache::*;
+mod AppDaemon;pub use AppDaemon::*;
 
 
 pub fn randomId(length:u16)->String{

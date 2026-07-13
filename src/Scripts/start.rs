@@ -1,28 +1,23 @@
-#![allow(non_snake_case)]
-use std::io;
-use std::fs::File;
-use std::time::Duration;
-use daemonize::{Daemonize,Error};
+use std::{collections::VecDeque, env, fs::File, io::Write, process::{Child,Command,Stdio}};
+use crate::Resources::{Daemon};
 
 
-pub fn startDaemon<Callback,Fallback>(callback:Callback,fallback:Fallback) where 
-    Callback:FnOnce()+Send+'static,
-    Fallback:FnOnce(Error)+Send+'static,
-{
-    let stdout=File::create("./service.out").unwrap();
-    let stderr=File::create("./service.err").unwrap();
-    let daemon=Daemonize::new().
-        pid_file("./service.pid").
-        working_directory("./").
-        stdout(stdout).stderr(stderr)
-    ;
+
+
+pub fn start(_args:&mut VecDeque<String>)->Child{
     println!("starting daemon...");
-    match daemon.start() {
-        Ok(_)=>{
-            callback();
-        },
-        Err(error)=>{
-            fallback(error);
-        },
-    }
+    let stdout=File::create(Daemon::getStdOutFilePath()).unwrap();
+    let stderr=File::create(Daemon::getStdErrFilePath()).unwrap();
+    let currentExe=env::current_exe().expect("Failed to locate current executable");
+    let child=Command::new(currentExe).
+        arg("--daemon-worker").
+        stdout(Stdio::from(stdout)).
+        stderr(Stdio::from(stderr)).
+        spawn().expect("msg")
+    ;
+    let childId=child.id().to_string();
+    let mut pidfile=File::create(Daemon::getPidFilePath()).unwrap();
+    pidfile.write(childId.as_bytes()).expect("failed to write daemon.pid");
+    println!("Daemon process id: {}",childId);
+    return child;
 }
