@@ -4,6 +4,7 @@ use crate::Resources::{Cache, CashFlow};
 
 
 const PID_FILENAME:&str="daemon.pid";
+const BEAT_INTERVAL:f64=2.0; //in secs
 const STDOUT_FILENAME:&str="daemon.out";
 const STDERR_FILENAME:&str="daemon.err";
 
@@ -30,7 +31,7 @@ pub struct Daemon {} impl Daemon {
                 }
             }
             Cache::saveAccounts(&accounts);
-            thread::sleep(Duration::from_secs(2));
+            thread::sleep(Duration::from_secs_f64(BEAT_INTERVAL));
         }
     }
     

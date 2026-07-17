@@ -196,6 +196,6 @@ pub struct Account {
         return datetime.format("%d/%m/%Y %H:%M:%S").to_string();
     }
     pub fn getCoef(value:f64)->f64{
-        return 1.0/(1.0+(-0.01*(value-26.5)*13.7).exp());
+        return 1.0/(1.0+(-0.137*(value-26.5)).exp());
     }
 }

@@ -34,7 +34,7 @@ pub fn cashIn(args:&mut Vec<String>){
         }
         if shouldRerun { _=Daemon::start() };
     } else {
-        println!("Invalid usage: cashin accepts either 2 or 3 args.");
+        println!("Invalid usage: cashin accepts either 2 or 3 arguments.");
         println!("owner amount #to create a new account");
         println!("owner accountId amount #to add balance to an account");
     }

@@ -23,10 +23,13 @@ fn main(){
             _=io::stdin().read_line(&mut input);
             input=input.trim().to_string();
             let args:&mut Vec<String>=&mut (input.split_whitespace().map(|it| it.to_string()).collect());
-            if args.len()>0 {
+            if args.is_empty() {
+                println!("type help to check available commands.");
+            } else {
                 let cmd=args.remove(0);
                 //cmdHistory.push(cmd.clone());
                 match cmd.as_str() {
+                    "help" => Scripts::help(args),
                     "list" => Scripts::list(args),
                     "cashin" => Scripts::cashIn(args),
                     "cashout" => Scripts::cashOut(args),
@@ -37,7 +40,8 @@ fn main(){
                     "exit" => std::process::exit(0),
                     "clear" => _=Command::new("clear").status().expect("failed to clear"),
                     _=>{
-                        println!("unknown command");
+                        println!("unknown command.");
+                        println!("type help to check available commands.");
                     },
                 }
             }
