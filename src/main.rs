@@ -2,13 +2,13 @@
 use std::env;
 use std::io::{self,Write};
 use std::process::Command;
+
+use crate::Resources::Cache;
 mod Scripts;
 mod Resources;
 
 
-//#[tokio::main]
 fn main(){
-    //let mut cmdHistory:Vec<String>=Vec::new();
     let args:Vec<String>=env::args().collect();
     if args.contains(&String::from("--daemon-worker")) {
         std::panic::set_hook(Box::new(|_panicInfo|{
@@ -16,18 +16,17 @@ fn main(){
         }));
         Resources::Daemon::work();
     } else {
+        Cache::init();
         loop {
             print!("> ");
             io::stdout().flush().expect("flush failed");
             let mut input=String::new();
             _=io::stdin().read_line(&mut input);
-            input=input.trim().to_string();
-            let args:&mut Vec<String>=&mut (input.split_whitespace().map(|it| it.to_string()).collect());
+            let args=&mut getArgs(input);
             if args.is_empty() {
                 println!("type help to check available commands.");
             } else {
                 let cmd=args.remove(0);
-                //cmdHistory.push(cmd.clone());
                 match cmd.as_str() {
                     "help" => Scripts::help(args),
                     "list" => Scripts::list(args),
@@ -47,4 +46,10 @@ fn main(){
             }
         }
     }
+}
+
+fn getArgs(input:String)->Vec<String>{
+    let input=input.trim().to_string();
+    let args=input.split_whitespace().map(|it| it.to_string()).collect();
+    return args;
 }

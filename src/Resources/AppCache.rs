@@ -1,4 +1,5 @@
-use std::fs::{File,OpenOptions};
+use std::env::home_dir;
+use std::fs::{self,File,OpenOptions};
 use std::io::{Error, ErrorKind, Write};
 use std::ops::RangeInclusive;
 use std::time::{Duration,SystemTime,UNIX_EPOCH};
@@ -6,7 +7,6 @@ use crate::Resources::{self};
 use chrono::{DateTime};
 
 
-const CACHE_PATH:&str=if cfg!(debug_assertions){ "./Cache/" } else { "/.ponzimulator/" };
 const ACCOUNTS_KEY:&str="accounts.txt";
 const EARNINGS_KEY:&str="earnings.txt";
 pub struct Cache {
@@ -82,7 +82,7 @@ pub struct Cache {
     }
 
     pub fn read(fileName:&str)->Result<String,Error>{
-        let path=CACHE_PATH.to_owned()+fileName;
+        let path=Cache::getPath()+fileName;
         if std::fs::exists(&path).unwrap_or(false) {
             let content=std::fs::read_to_string(path).
             expect(format!("Failed to read {fileName} from cache").as_str());
@@ -93,13 +93,13 @@ pub struct Cache {
     }
 
     pub fn write(fileName:&str,content:&str){
-        let path=CACHE_PATH.to_owned()+fileName;
+        let path=Cache::getPath()+fileName;
         let mut file=File::create(path).expect("Failed to create file");
         write!(file,"{content}").expect("failed to save account");
     }
 
     pub fn append(fileName:&str,content:String)->Result<(),Error>{
-        let path=CACHE_PATH.to_owned()+fileName;
+        let path=Cache::getPath()+fileName;
         if let Ok(mut file)=OpenOptions::new().
             create(true).write(true).append(true).
         open(path){
@@ -110,8 +110,22 @@ pub struct Cache {
         }
     }
 
+    pub fn init(){
+        let path=Cache::getPath();
+        if let Ok(exists)=fs::exists(&path) {
+            if !exists {
+                if let Err(error)=fs::create_dir(&path) {
+                    panic!("{}",error);
+                }
+            }
+        } else {
+            panic!("couldn't create app cache");
+        }
+    }
+
     pub fn getPath()->String{
-        return CACHE_PATH.to_owned();
+        return if cfg!(debug_assertions){ String::from("./Cache/") } 
+        else { home_dir().unwrap().to_string_lossy().into_owned()+"/.ponzimulator/" };
     }
 }
 
@@ -165,11 +179,10 @@ pub struct Account {
     }
 
     pub fn getCota(&self)->RangeInclusive<f64>{
-        //let Account {lastDepositAt,..}=self;
-        let lifetime=self.getLifetime();
-        let lastDepositTime=self.getLastDepositTimestamp();
-        let minCoef=Account::getCoef(lifetime);
-        let maxCoef=Account::getCoef(lastDepositTime);
+        //let lifetime=self.getLifetime();
+        let lastDepositTimestamp=self.getLastDepositTimestamp();
+        let minCoef=Account::getCoef(lastDepositTimestamp);
+        let maxCoef=Account::getCoef(lastDepositTimestamp);
         let min=MIN_START_COTA+minCoef*(MIN_END_COTA-MIN_START_COTA);
         let max=MAX_START_COTA+maxCoef*(MAX_END_COTA-MAX_START_COTA);
         let markup=(0.001*self.balance).min(0.001*self.deposit);

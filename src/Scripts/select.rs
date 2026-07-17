@@ -10,6 +10,7 @@ pub fn select(args:&mut Vec<String>){
             if cfg!(debug_assertions) {
                 println!("Cota: {:?}",account.getCota());
                 println!("Lifetime: {}",account.getLifetime());
+                println!("Deposit timestamp: {}",account.getLastDepositTimestamp());
             }
             println!("Deposit: {}",account.deposit);
             println!("Balance: {}",account.balance);
