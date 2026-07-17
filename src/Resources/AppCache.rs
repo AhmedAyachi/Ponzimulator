@@ -1,6 +1,6 @@
-use std::fmt::Error;
 use std::fs::{File,OpenOptions};
-use std::io::Write;
+use std::io::{Error, ErrorKind, Write};
+use std::ops::RangeInclusive;
 use std::time::{Duration,SystemTime,UNIX_EPOCH};
 use crate::Resources::{self};
 use chrono::{DateTime};
@@ -14,8 +14,10 @@ pub struct Cache {
 } impl Cache {
 
     pub fn readEarnings()->String{
-        let content=Cache::read(EARNINGS_KEY).expect(format!("Failed to read {EARNINGS_KEY}").as_str());
-        return content;
+        return match Cache::read(EARNINGS_KEY) {
+            Ok(content)=>{ content },
+            Err(_)=>{ String::from("") },
+        }
     }
 
     pub fn writeEarnings(content:String){
@@ -23,13 +25,14 @@ pub struct Cache {
     }
 
     pub fn saveEarnedAmount(amount:f64){
-        Cache::append(EARNINGS_KEY,amount.to_string()+"\n");
+        _=Cache::append(EARNINGS_KEY,amount.to_string()+"\n");
     }
 
     pub fn fetchAccounts()->Vec<Account>{
-        let content=Cache::read(ACCOUNTS_KEY).expect(format!("Failed to read {ACCOUNTS_KEY}").as_str());
-        let accounts:Vec<Account>=content.lines().map(|it| Account::new(it)).collect();
-        return accounts;
+        return match Cache::read(ACCOUNTS_KEY) {
+            Ok(content)=>{ content.lines().map(|it| Account::new(it)).collect() },
+            Err(_)=>{ Vec::new() },
+        }
     }
 
     pub fn saveAccounts(accounts:&Vec<Account>){
@@ -41,9 +44,10 @@ pub struct Cache {
                 account.balance.to_string().as_str()+" "+
                 account.createdAt.to_string().as_str()+" "+
                 account.pot.to_string().as_str()+" "+
-                account.deposit.to_string().as_str()+"\n"
+                account.deposit.to_string().as_str()+" "+
+                account.lastDepositAt.to_string().as_str()+"\n",
             );
-            Cache::append(ACCOUNTS_KEY,line);
+            _=Cache::append(ACCOUNTS_KEY,line);
         }
     }
 
@@ -52,32 +56,39 @@ pub struct Cache {
         let amount=data[1].clone();
         let accountId=Account::randomId();
         let creationTime=SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or(Duration::from_millis(0)).as_millis().to_string();
-        Cache::append(ACCOUNTS_KEY,vec![
+        let data=vec![
             accountId.clone(),
             owner.clone(),
             amount.clone(),
             creationTime.clone(),
             amount.clone(),
             amount.clone(),
-        ].join(" "));
-        let balance=amount.parse::<f64>().unwrap();
-        return Ok(Account { 
-            id:accountId,
-            owner,balance,
-            createdAt:creationTime.parse::<u64>().unwrap(), 
-            pot:balance,
-            deposit:balance,
-        });
+            creationTime.clone(),
+        ].join(" ");
+        if Cache::append(ACCOUNTS_KEY,data.clone()).is_ok() {
+            let balance=amount.parse::<f64>().unwrap();
+            let createdAt=creationTime.parse::<u64>().unwrap();
+            return Ok(Account { 
+                id:accountId,
+                owner,balance,
+                createdAt, 
+                pot:balance,
+                deposit:balance,
+                lastDepositAt:createdAt,
+            }); 
+        } else {
+            return Err(Error::new(ErrorKind::Other,format!("couldn't create account with args {}",data)));
+        }
     }
 
-    pub fn read(fileName:&str)->Result<String,String>{
+    pub fn read(fileName:&str)->Result<String,Error>{
         let path=CACHE_PATH.to_owned()+fileName;
         if std::fs::exists(&path).unwrap_or(false) {
             let content=std::fs::read_to_string(path).
             expect(format!("Failed to read {fileName} from cache").as_str());
             return Ok(content);
         } else { 
-            return Err(String::from("No cached file with name: ")+fileName);
+            return Err(Error::new(ErrorKind::Other,format!("No cached file with name: {fileName}")));
         };
     }
 
@@ -87,13 +98,16 @@ pub struct Cache {
         write!(file,"{content}").expect("failed to save account");
     }
 
-    pub fn append(fileName:&str,content:String){
+    pub fn append(fileName:&str,content:String)->Result<(),Error>{
         let path=CACHE_PATH.to_owned()+fileName;
-        let mut file=OpenOptions::new().
+        if let Ok(mut file)=OpenOptions::new().
             create(true).write(true).append(true).
-            open(path).expect(format!("Failed to open {fileName} file").as_str())
-        ;
-        write!(file,"{content}").expect("failed to save account");
+        open(path){
+            write!(file,"{content}").expect("failed to save account");
+            return Ok(());
+        } else {
+            return Err(Error::new(ErrorKind::Other,format!("Failed to append content to {fileName}.")));
+        }
     }
 
     pub fn getPath()->String{
@@ -101,7 +115,13 @@ pub struct Cache {
     }
 }
 
-#[derive(Debug)]
+
+const MIN_START_COTA:f64=-0.1;
+const MAX_START_COTA:f64=0.12;
+const MIN_END_COTA:f64=-0.5;
+const MAX_END_COTA:f64=0.3;
+const MS_STEP:u64=86400000;
+//#[derive(Debug)]
 pub struct Account {
     pub id:String,
     pub owner:String,
@@ -109,30 +129,73 @@ pub struct Account {
     pub createdAt:u64,
     pub pot:f64,
     pub deposit:f64,
+    pub lastDepositAt:u64,
 } impl Account {
     pub fn new(data:&str)->Self{
         let details:Vec<&str>=data.split_whitespace().collect();
+        let createdAt=details[3].parse::<u64>().unwrap_or(0);
+        let lastDepositAt=match details.get(6) {
+            Some(value)=>{ value.parse::<u64>().unwrap_or(createdAt) },
+            None=>{ createdAt },
+        };
         return Self {
             id:String::from(details[0]),
             owner:String::from(details[1]),
             balance:details[2].parse::<f64>().unwrap_or(0.0),
-            createdAt:details[3].parse::<u64>().unwrap_or(0),
+            createdAt,
             pot:details[4].parse::<f64>().unwrap_or(0.0),
             deposit:details[5].parse::<f64>().unwrap_or(0.0),
+            lastDepositAt,
         }
     }
     
-    pub fn transact(&mut self,amount:f64){
-        self.pot+=amount;
-        self.deposit+=amount;
-        self.balance+=amount;
+    pub fn transact(&mut self,amount:f64)->Result<(),Error>{
+        let Account {balance,..}=*self;
+        if amount<0.0 && amount.abs()>balance {
+            return Err(Error::new(ErrorKind::Other,format!("Insufficient balance: {balance}")));
+        } else {
+            self.pot+=amount;
+            self.deposit+=amount;
+            self.balance+=amount;
+            if amount>0.0 {
+                self.lastDepositAt=SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or(Duration::from_millis(0)).as_millis() as u64;
+            }
+            return Ok(());
+        }
+    }
+
+    pub fn getCota(&self)->RangeInclusive<f64>{
+        //let Account {lastDepositAt,..}=self;
+        let lifetime=self.getLifetime();
+        let lastDepositTime=self.getLastDepositTimestamp();
+        let minCoef=Account::getCoef(lifetime);
+        let maxCoef=Account::getCoef(lastDepositTime);
+        let min=MIN_START_COTA+minCoef*(MIN_END_COTA-MIN_START_COTA);
+        let max=MAX_START_COTA+maxCoef*(MAX_END_COTA-MAX_START_COTA);
+        let markup=(0.001*self.balance).min(0.001*self.deposit);
+        return min*markup..=max*markup;
+    }
+
+    pub fn getLifetime(&self)->f64{
+        let now=SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or(Duration::from_millis(0)).as_millis() as u64;
+        let lifetime=((now-self.createdAt) as f64)/(MS_STEP as f64);
+        return lifetime;
+    }
+
+    pub fn getLastDepositTimestamp(&self)->f64{
+        let now=SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or(Duration::from_millis(0)).as_millis() as u64;
+        let lastDepositTime=(now-self.lastDepositAt) as f64/(MS_STEP as f64);
+        return lastDepositTime;
     }
 
     pub fn randomId()->String{
         return Resources::randomId(20);
     }
-    pub fn getCreationDate(ms:u64)->String{
+    pub fn getDate(ms:u64)->String{
         let datetime=DateTime::from_timestamp_millis(ms as i64).expect("");
         return datetime.format("%d/%m/%Y %H:%M:%S").to_string();
+    }
+    pub fn getCoef(value:f64)->f64{
+        return 1.0/(1.0+(-0.01*(value-26.5)*13.7).exp());
     }
 }

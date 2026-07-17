@@ -12,6 +12,9 @@ pub fn start(_args:&mut Vec<String>){
         },
         Err(error)=>{
             println!("{}",error);
+            if let Ok(pid)=Daemon::getPid() {
+                println!("Daemon process id: {pid}");
+            }
         },
     }
 }

@@ -15,18 +15,16 @@ pub struct Daemon {} impl Daemon {
         loop {
             cycleCount+=1;
             for account in &mut accounts {
-                let step=(0.02*account.balance).min(10.0);
-                let offset=rand::rng().random_range(-0.5..=0.5)*step;
+                let offset=rand::rng().random_range(account.getCota());
                 account.balance+=offset;
             }
             if cycleCount>=10 {
                 cycleCount=0;
                 let amount=CashFlow::getPotentialEarnings(&accounts);
                 if amount>0.0 {
-                    let totalPot=CashFlow::getTotalPot(&accounts);
-                    let remainingRatio=(totalPot-amount)/totalPot;
+                    let potLoss=amount/accounts.len() as f64;
                     for account in &mut accounts {
-                        account.pot*=remainingRatio;
+                        account.pot-=potLoss;
                     }
                     Cache::saveEarnedAmount(amount);
                 }
@@ -85,7 +83,7 @@ pub struct Daemon {} impl Daemon {
         };
     }
 
-    pub fn getPid()->Result<String,String>{
+    pub fn getPid()->Result<String,Error>{
         let pid=Cache::read(PID_FILENAME);
         return pid;
     }

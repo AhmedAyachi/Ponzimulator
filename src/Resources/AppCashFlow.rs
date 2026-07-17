@@ -14,7 +14,8 @@ pub struct CashFlow {} impl CashFlow {
 
     pub fn getPotentialEarnings(accounts:&Vec<Account>)->f64{
         let netPot=CashFlow::getNetPot(accounts);
-        return if netPot>=100.0 { 0.1*netPot } else { 0.0 };
+        let totalPot=CashFlow::getTotalPot(accounts);
+        return if netPot>=(0.002*totalPot).min(100.0) { 0.05*netPot } else { 0.0 };
     }
 
     pub fn getNetPot(accounts:&Vec<Account>)->f64{
@@ -23,15 +24,21 @@ pub struct CashFlow {} impl CashFlow {
         return totalPot-currentPot;
     }
 
+    pub fn getTotalPot(accounts:&Vec<Account>)->f64{
+        return accounts.iter().fold(0.0,|sum,account|{
+            return sum+account.pot;
+        });
+    }
+
     pub fn getCurrentPot(accounts:&Vec<Account>)->f64{
         return accounts.iter().fold(0.0,|sum,account|{
             return sum+account.balance;
         });
     }
 
-    pub fn getTotalPot(accounts:&Vec<Account>)->f64{
+    pub fn getTotalDeposit(accounts:&Vec<Account>)->f64{
         return accounts.iter().fold(0.0,|sum,account|{
-            return sum+account.pot;
+            return sum+account.deposit;
         });
     }
 }

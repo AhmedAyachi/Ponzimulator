@@ -21,10 +21,15 @@ pub fn cashIn(args:&mut Vec<String>){
             let mut accounts=Cache::fetchAccounts();
             if let Some(account)=accounts.iter_mut().find(|account| (account.id==accountId)&&(account.owner==owner)) {
                 let amount=balance.parse::<f64>().unwrap_or(0.0);
-                account.transact(amount);
-                Cache::saveAccounts(&accounts);
+                match account.transact(amount) {
+                    Ok(_)=>{ 
+                        Cache::saveAccounts(&accounts);
+                        println!("✔ {amount} has been deposited in {owner}'s account {accountId}.");
+                    },
+                    Err(error)=>{ println!("{}",error) },
+                };
             } else {
-                println!("no account found");
+                println!("no account found.");
             }
         }
         if shouldRerun { _=Daemon::start() };
