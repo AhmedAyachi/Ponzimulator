@@ -13,7 +13,7 @@ The software randomly changes the balances of registered accounts to mimic real 
 > Paying the profits won by new investors with the money lost by old ones.
 
 When the old losses and the recent wins fluctuate, that creates a difference between the total balance of all accounts and the amount currently in the pot, known as the ***Net Pot***. The system then takes a small percentage from that net pot, an action known as a ***Milking Attempt***, which goes straight into your pocket as the Earned Amount.
->The Net Pot fluctuates between negative and positive values 
+>The Net Pot fluctuates between negative and positive values.
 
 ## How to use it ?
 Open terminal and navigate to where you want the project to be located and clone the repo through:
@@ -100,7 +100,7 @@ A range with negative bounds means that the account will 100% lose.
 A cota will always have a negative and positive bounds to make sure that any account can lose or win at any point in time.
 The system calculates what the lower and upper bounds are at a specific time to control how often and how much an account should win or lose.
 
-For a recent account, the initial base cota starts at e.g. *[ -0.1 , 0.12 ]*, and over time, it tends to shift toward e.g. *[ -0.5 , 0.3 ]*.
+For a recent account, the initial base cota starts at e.g. *[-0.1,0.12]*, and over time, it tends to shift toward e.g. *[-0.5,0.3]*.
 
 > A base quota isn’t the account’s actual quota, since that also depends on the account’s current balance.
 

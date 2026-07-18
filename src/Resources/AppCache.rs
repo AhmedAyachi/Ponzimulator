@@ -9,9 +9,7 @@ use chrono::{DateTime};
 
 const ACCOUNTS_KEY:&str="accounts.txt";
 const EARNINGS_KEY:&str="earnings.txt";
-pub struct Cache {
-    
-} impl Cache {
+pub struct Cache {} impl Cache {
 
     pub fn readEarnings()->String{
         return match Cache::read(EARNINGS_KEY) {
