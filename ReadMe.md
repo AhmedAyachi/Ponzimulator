@@ -2,7 +2,10 @@
 This project was made for educational and amusement purposes only. Any usage of the code of any sort for any reason and for any purpose is out of my responsibility.  
 
 ## What is this ?
-This is a basic ponzi scheme management system.
+#### Fancy talk
+A stochastic investment lifecycle simulator demonstrating probabilistic wealth redistribution, background processing, and evolving account state.
+#### Long story short
+A basic ponzi scheme management system.
 
 ## Why is it made ?
 I was watching the final episodes of season 8 of Two and a Half Men, where a character named Alan was running a Ponzi scheme, collecting money from new investors to pay existing ones. Alan was a naive, broke, divorced single father, so pathetic that I actually wanted his scam to succeed, just so he could finally have enough money to move off his brother’s couch and get a place of his own. In the show, his scam has failed, but from my perspective, he seemed to be doing well — he just needed a “management system”.
@@ -51,7 +54,7 @@ To stop the daemon, you simply type:
 ```
 
 > Exiting the interactive terminal won't stop the daemon. 
-> To do so, you must call stop explicitely in the interactive terminal.
+> To do so, you must call stop explicitly in the interactive terminal.
 
 ### Check the daemon progress
 To check the daemon progress, type:
@@ -78,6 +81,9 @@ To view all currently registered accounts in a table format, type:
 ```
 > list
 ```
+![](https://raw.githubusercontent.com/AhmedAyachi/RepoIllustrations/refs/heads/main/Ponzimulator/ListCmdOutput.png)
+> Screenshot taken on 18/07/2026.
+
 > Type ***help*** to check all available commands.
 
 ## How does it work ?
@@ -85,7 +91,7 @@ The system checks how an account should more probably lose or win based on multi
 
 > An account will never 100% win or lose at any point in time.
 
-The system accomplishs that by assigning what we call a ***cota*** to each account.
+The system accomplishes that by assigning what we call a ***cota*** to each account.
 A cota is an inclusive range, e.g. *[-0.5,0.7]*, that is generated based on some account details:
 1. The creation time
 2. The last deposit time
