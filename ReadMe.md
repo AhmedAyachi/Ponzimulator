@@ -1,5 +1,5 @@
 ## Disclaimer
-This project was made for educational and amusement purposes only. 
+This project was made for educational and amusement purposes only.  
 
 Any usage of the code of any sort for any reason and for any purpose is out of my responsibility.  
 
@@ -149,6 +149,7 @@ upperBound = 0.12 + coef * ( 0.3 - 0.12 );
 ```
 
 The coef value determines how much the bound is adjusting. 
+
 The coef function should meet few conditions:  
 1. Increasing.
 2. Its values range between 0 and 1.  

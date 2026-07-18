@@ -2,7 +2,7 @@
 
 pub fn help(_args:&Vec<String>){
     println!("Available commands:");
-    println!("chasin: cashs a person in.");
+    println!("cashin: cashs a person in.");
     println!("cashout: cashs a person out.");
     println!("list: lists the registered accounts.");
     println!("select: logs account details.");
