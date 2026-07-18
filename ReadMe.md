@@ -1,5 +1,6 @@
 ## Disclaimer
 This project was made for educational and amusement purposes only. 
+
 Any usage of the code of any sort for any reason and for any purpose is out of my responsibility.  
 
 ## What is this ?
@@ -17,6 +18,7 @@ The software randomly changes the balances of registered accounts to mimic real 
 > Paying the profits won by new investors with the money lost by old ones.
 
 When the old losses and the recent wins fluctuate, that creates a difference between the total balance of all accounts and the amount currently in the pot, known as the ***Net Pot***. 
+
 The system then takes a small percentage from that net pot, an action known as a ***Milking Attempt***, which goes straight into your pocket as the Earned Amount.
 >The Net Pot fluctuates between negative and positive values.
 
