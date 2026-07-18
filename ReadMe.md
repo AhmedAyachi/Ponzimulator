@@ -31,15 +31,34 @@ The ***cargo run*** command will run the project in a debug environment, creatin
 ### Cashing investors in
 To create a new account for an investor, type e.g.
 ```
-> cashin ayachi 5500
+> cashin ayachi 2300
+owner: ayachi
+account id: m3iI8YeXPAKO9q4y5bwX
 ```
-This creates a new account with a balance of 5500 and ayachi as an owner.
+This creates a new account with a balance of 2300 and ayachi as an owner.
 The terminal will output the account id.
 You can add an amount to an existing account by typing:
 ```
-> cashin ayachi <account_id> 2000
+> cashin ayachi m3iI8YeXPAKO9q4y5bwX 100
+✔ 100 has been deposited in ayachi's account m3iI8YeXPAKO9q4y5bwX.
 ```
-This adds 2000 to the balance of the account with the specified id and owner name if it exists.
+This adds 100 to the balance of the account with the specified id and owner name if it exists.
+To cash an account out, use the ***cashout*** command:
+```
+> cashout ayachi m3iI8YeXPAKO9q4y5bwX 300
+✔ 300 has been withdrawn from ayachi's account m3iI8YeXPAKO9q4y5bwX.
+```
+> Not specifying an amount will cashout the whole account.
+
+To check an account details, use the ***select*** command:
+```
+> select m3iI8YeXPAKO9q4y5bwX
+Owner: ayachi
+Deposit: 2100
+Balance: 1610.9158178147734
+Created on: 01/07/2026 16:39:43
+Last deposit at: 01/07/2026 16:39:43
+```
 
 ### Start the daemon
 To start the daemon, you simply type: 
