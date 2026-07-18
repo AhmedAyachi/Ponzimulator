@@ -1,5 +1,6 @@
 ## Disclaimer
-This project was made for educational and amusement purposes only. Any usage of the code of any sort for any reason and for any purpose is out of my responsibility.  
+This project was made for educational and amusement purposes only. 
+Any usage of the code of any sort for any reason and for any purpose is out of my responsibility.  
 
 ## What is this ?
 #### Fancy talk
@@ -15,7 +16,8 @@ The software randomly changes the balances of registered accounts to mimic real 
 > New investors win and old ones lose.
 > Paying the profits won by new investors with the money lost by old ones.
 
-When the old losses and the recent wins fluctuate, that creates a difference between the total balance of all accounts and the amount currently in the pot, known as the ***Net Pot***. The system then takes a small percentage from that net pot, an action known as a ***Milking Attempt***, which goes straight into your pocket as the Earned Amount.
+When the old losses and the recent wins fluctuate, that creates a difference between the total balance of all accounts and the amount currently in the pot, known as the ***Net Pot***. 
+The system then takes a small percentage from that net pot, an action known as a ***Milking Attempt***, which goes straight into your pocket as the Earned Amount.
 >The Net Pot fluctuates between negative and positive values.
 
 ## How to use it ?
@@ -43,6 +45,7 @@ You can add an amount to an existing account by typing:
 ✔ 100 has been deposited in ayachi's account m3iI8YeXPAKO9q4y5bwX.
 ```
 This adds 100 to the balance of the account with the specified id and owner name if it exists.
+
 To cash an account out, use the ***cashout*** command:
 ```
 > cashout ayachi m3iI8YeXPAKO9q4y5bwX 300
@@ -119,10 +122,15 @@ A cota is an inclusive range, e.g. *[-0.5,0.7]*, that is generated based on some
 And the account's balance fluctuates by a random number generated from that range.
 
 Shifting the range along the x-axis controls how often the account wins or loses. 
+
 Increasing the range width controls how much the account wins or loses.
+
 A range with positive bounds means that the account will 100% win.
+
 A range with negative bounds means that the account will 100% lose.
+
 A cota will always have a negative and positive bounds to make sure that any account can lose or win at any point in time.
+
 The system calculates what the lower and upper bounds are at a specific time to control how often and how much an account should win or lose.
 
 For a recent account, the initial base cota starts at e.g. *[-0.1,0.12]*, and over time, it tends to shift toward e.g. *[-0.5,0.3]*.
