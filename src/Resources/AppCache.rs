@@ -128,12 +128,17 @@ pub struct Cache {} impl Cache {
 }
 
 
-const MIN_START_COTA:f64=-0.1;
-const MAX_START_COTA:f64=0.12;
-const MIN_END_COTA:f64=-0.5;
-const MAX_END_COTA:f64=0.3;
+const LOWER_START_COTA:f64=-0.022;
+const UPPER_START_COTA:f64=0.03;
+const LOWER_END_COTA:f64=-0.0265;
+const UPPER_END_COTA:f64=0.015;
+/**
+ * A day in ms.
+ * An account will start losing after 24-25 days.
+ * Lowering this value will quicken Cota Shifting.
+ */
 const MS_STEP:u64=86400000;
-//#[derive(Debug)]
+
 pub struct Account {
     pub id:String,
     pub owner:String,
@@ -160,6 +165,36 @@ pub struct Account {
             lastDepositAt,
         }
     }
+
+    pub fn isSolvent(&self)->bool{
+        return (
+            self.pot>0.0 &&
+            self.balance>0.0 &&
+            self.deposit>0.0
+        )
+    }
+    pub fn isBankrupt(&self)->bool{
+        return (
+            self.pot>0.0 &&
+            self.balance<=0.0 &&
+            self.deposit>0.0
+        )
+    }
+    pub fn isCashedOut(&self)->bool{
+        return (
+            self.pot<=0.0 &&
+            self.balance<=0.0 &&
+            self.deposit<=0.0
+        )
+    }
+
+    pub fn toCashedOut(&mut self)->f64{
+        let Account {balance,..}=(*self);
+        self.pot=0.0;
+        self.balance=0.0;
+        self.deposit=0.0;
+        return balance;
+    }
     
     pub fn transact(&mut self,amount:f64)->Result<(),Error>{
         let Account {balance,..}=*self;
@@ -177,13 +212,11 @@ pub struct Account {
     }
 
     pub fn getCota(&self)->RangeInclusive<f64>{
-        //let lifetime=self.getLifetime();
-        let lastDepositTimestamp=self.getLastDepositTimestamp();
-        let minCoef=Account::getCoef(lastDepositTimestamp);
-        let maxCoef=Account::getCoef(lastDepositTimestamp);
-        let min=MIN_START_COTA+minCoef*(MIN_END_COTA-MIN_START_COTA);
-        let max=MAX_START_COTA+maxCoef*(MAX_END_COTA-MAX_START_COTA);
-        let markup=(0.001*self.balance).min(0.001*self.deposit);
+        let lowerCoef=Account::getCoef(self.getLifetime());
+        let upperCoef=Account::getCoef(self.getLastDepositTimestamp());
+        let min=LOWER_START_COTA+lowerCoef*(LOWER_END_COTA-LOWER_START_COTA);
+        let max=UPPER_START_COTA+upperCoef*(UPPER_END_COTA-UPPER_START_COTA);
+        let markup=0.001*self.balance.min(self.deposit);
         return min*markup..=max*markup;
     }
 
@@ -207,6 +240,8 @@ pub struct Account {
         return datetime.format("%d/%m/%Y %H:%M:%S").to_string();
     }
     pub fn getCoef(value:f64)->f64{
+        //a: -0.137 - c * (-5 - -0.137)
+        //b:   26.5 - c * (7 - 26.5)
         return 1.0/(1.0+(-0.137*(value-26.5)).exp());
     }
 }

@@ -15,22 +15,30 @@ I was watching the final episodes of season 8 of Two and a Half Men, where a cha
 ## What is the approach ?
 The software randomly changes the balances of registered accounts to mimic real investment actions, but in a way that makes recent investors start winning before eventually losing over time.
 > New investors win and old ones lose.
-> Paying the profits won by new investors with the money lost by old ones.
+> Covering the profits won by new investors with the money lost by old ones.
 
 When the old losses and the recent wins fluctuate, that creates a difference between the total balance of all accounts and the amount currently in the pot, known as the ***Net Pot***. 
 
 The system then takes a small percentage from that net pot, an action known as a ***Milking Attempt***, which goes straight into your pocket as the Earned Amount.
 >The Net Pot fluctuates between negative and positive values.
 
-## How to use it ?
-Open terminal and navigate to where you want the project to be located and clone the repo through:
+## How to install ?
+Open a terminal window and navigate to where you want the project to be located and then:
 ```
 1. git clone https://github.com/AhmedAyachi/Ponzimulator 
 2. cd Ponzimulator
-3. cargo run
+3. cargo install --path .
 ```
-And you get into an interactive terminal environment.
-The ***cargo run*** command will run the project in a debug environment, creating a **Cache** folder to save progress inside the project root directory.
+> You may need to add .cargo/bin to your PATH;
+
+## How to use ?
+Open a terminal window and run:
+```
+ponzi
+```
+ to get into an interactive terminal environment.
+ 
+> Use ***cargo run*** command inside the project directory to run it in a debug mode. In the debug env, a  **Cache** folder is created to save progress files.
 
 ### Cashing investors in
 To create a new account for an investor, type e.g.
@@ -96,7 +104,7 @@ The ***status*** command displays information about the daemon work and gives yo
 |Term|Description|
 |-----|-----------|
 |Net Pot|A positive Net Pot means that the investors are losing. In other words, if all investors cashout at that exact moment, you got to walk away with, in this case, 80 of whatever currency you're using. A negative Net Pot means that they are winning, so basically means, you're losing and if they all cashout you need to pay that amount more.|
-|Total Pot|Is the difference between the Total Deposit and the Earned Amount. Which means, it's the amount of money left after a successful milking attempt.|
+|Total Pot|Is the amount of deposited money left after a successful milking attempt.|
 |Total Deposit|Is the total amount deposited by all investors.|
 |Accounts Count|How many accounts are currently registered.|
 
@@ -111,15 +119,13 @@ To view all currently registered accounts in a table format, type:
 > Type ***help*** to check all available commands.
 
 ## How does it work ?
-The system checks how an account should more probably lose or win based on multiple factors including, the account creation time and the account's last deposit time.
-
-> An account will never 100% win or lose at any point in time.
-
-The system accomplishes that by assigning what we call a ***cota*** to each account.
-A cota is an inclusive range, e.g. *[-0.5,0.7]*, that is generated based on some account details:
+The system checks how an account should more probably lose or win by assigning what we call a ***cota*** to each account.
+A cota is an inclusive range, e.g. *[-0.5,0.7]*, that is generated based on factors such as:
 1. The creation time
 2. The last deposit time
 3. The current balance
+
+> An account will never 100% win or lose at any point in time.
 
 And the account's balance fluctuates by a random number generated from that range.
 
@@ -134,23 +140,31 @@ A range with negative bounds means that the account will 100% lose.
 A cota will always have a negative and positive bounds to make sure that any account can lose or win at any point in time.
 
 The system calculates what the lower and upper bounds are at a specific time to control how often and how much an account should win or lose.
+For instance, an account's cota should start at a range that makes it more likely to win ***[lowerStartCota,upperStartCota],*** and over time, tends toward a range that makes it more likely to lose ***[lowerEndCota,upperEndCota].***
+The account's creation time controls how much the account should lose and thus the ***lowerCota***.
+The account's last deposit time controls how much the account should win and thus the ***upperCota***.
+By making a new deposit, an account should move from a losing cota to a winning one. And the older the account is, the faster it should get back to the losing cota.
 
-For a recent account, the initial base cota starts at e.g. *[-0.1,0.12]*, and over time, it tends to shift toward e.g. *[-0.5,0.3]*.
-
-> A base quota isn’t the account’s actual quota, since that also depends on the account’s current balance.
-
-The starting cota makes the account more likely to win, while the ending cota makes it more likely to lose.
+That being said,  choosing the bounds of the two ranges should meet specific conditions:
+|Condition|Reason|
+|---------|------|
+|***lowerStartCota*** & ***lowerEndCota*** are < 0|an account must still lose at any time|
+|***upperStartCota*** & ***upperEndCota*** are > 0|an account must still win at any time|
+|***abs(lowerStartCota)*** < ***abs(upperStartCota)*** |an account should be more likely to win at the start|
+|***abs(lowerEndCota)*** > ***abs(upperEndCota)***|an account should be more likely to loose over time|
+|***abs(upperStartCota)*** > ***abs(lowerEndCota)***|an account should be more likely to win on a new deposit|
+|***lowerEndCota*** < ***lowerStartCota***|an account should be losing more over time then at the start to make sure the Net Pot ends up positive|
 
 ### Cota Shifting
 As time goes forwards, a recent account cota should shift from a winning cota to a losing one.
 ```
-lowerBound = -O.1 + coef * ( -0.5 - -O.1 );
-upperBound = 0.12 + coef * ( 0.3 - 0.12 );
+lowerCota = lowerStartCota + lowerCoef * ( lowerEndCota - lowerStartCota );
+upperCota = upperStartCota + upperCoef * ( upperEndCota - upperStartCota );
 ```
 
 The coef value determines how much the bound is adjusting. 
 
 The coef function should meet few conditions:  
 1. Increasing.
-2. Its values range between 0 and 1.  
-3. Increases gradually, starting slow and then speeding up.  
+2. Its values range between 0 and 1.
+3. Increases gradually, starting slow and then speeding up.

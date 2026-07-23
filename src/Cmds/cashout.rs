@@ -10,12 +10,11 @@ pub fn cashOut(args:&mut Vec<String>){
         let owner=args.get(0).unwrap();
         let accountId=args.get(1).unwrap();
         let mut accounts=Cache::fetchAccounts();
-        if let Some(index)=accounts.iter().position(|account|{ 
+        if let Some(account)=accounts.iter_mut().find(|account|{ 
             return (account.id==(*accountId))&&(account.owner==(*owner)); 
         }){
             if let Some(arg2)=args.get(2) {
                 if let Ok(amount)=arg2.parse::<f64>() {
-                    let account=&mut accounts[index];
                     match account.transact(-1.0*amount) {
                         Ok(_)=>{
                             Cache::saveAccounts(&accounts);
@@ -27,9 +26,8 @@ pub fn cashOut(args:&mut Vec<String>){
                     println!("Third argument (amount) must be a number.");
                 }
             } else {
-                let account=accounts.remove(index);
+                println!("{} has been withdrawn from the pot.",account.toCashedOut());
                 Cache::saveAccounts(&accounts);
-                println!("{} has been withdrawn from the pot.",account.balance);
                 println!("✔ {owner}'s account {accountId} has been cashed out.");
             }
         }

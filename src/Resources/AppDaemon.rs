@@ -16,8 +16,14 @@ pub struct Daemon {} impl Daemon {
         loop {
             cycleCount+=1;
             for account in &mut accounts {
-                let offset=rand::rng().random_range(account.getCota());
-                account.balance+=offset;
+                if account.isSolvent() {
+                    let offset=rand::rng().random_range(account.getCota());
+                    if (offset<0.0)&&(offset.abs()>=account.balance) {
+                        account.balance=0.0;
+                    } else {
+                        account.balance+=offset;
+                    }
+                }
             }
             if cycleCount>=10 {
                 cycleCount=0;
