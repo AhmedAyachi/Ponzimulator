@@ -3,11 +3,12 @@ use crate::Resources::{Account,Cache};
 
 pub fn list(_:&mut Vec<String>){
     let accounts=Cache::fetchAccounts();
+    let rowSeparator=format!("{:-<22}|{:-<12}|{:-<20}|{:-<20}|{:-<21}","","","","","");
     println!(
         "{:^22}|{:^12}|{:^20}|{:^20}|{:^21}",
         "Id","Owner","Balance","Deposit","Created On",
     );
-    println!("{:-<22}|{:-<12}|{:-<20}|{:-<20}|{:-<21}","","","","","");
+    println!("{rowSeparator}");
     for account in &accounts {
         if account.isSolvent() {
             println!(
@@ -16,7 +17,7 @@ pub fn list(_:&mut Vec<String>){
                 account.balance,account.deposit,
                 Account::getDate(account.createdAt),
             );
-            println!("{:-<22}|{:-<12}|{:-<20}|{:-<20}|{:-<21}","","","","","");
+            println!("{rowSeparator}");
         }
     }
 }
