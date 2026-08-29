@@ -15,22 +15,21 @@ pub struct Daemon {} impl Daemon {
         let mut accounts=Cache::fetchAccounts();
         loop {
             cycleCount+=1;
-            for account in &mut accounts {
-                if account.isSolvent() {
-                    let offset=rand::rng().random_range(account.getCota());
-                    if (offset<0.0)&&(offset.abs()>=account.balance) {
-                        account.balance=0.0;
-                    } else {
-                        account.balance+=offset;
-                    }
+            let mut solvents:Vec<_>=accounts.iter_mut().filter(|it|{ it.isSolvent() }).collect();
+            for account in &mut solvents {
+                let offset=rand::rng().random_range(account.getCota());
+                if (offset<0.0)&&(offset.abs()>=account.balance) {
+                    account.balance=0.0;
+                } else {
+                    account.balance+=offset;
                 }
             }
             if cycleCount>=10 {
                 cycleCount=0;
-                let amount=CashFlow::getPotentialEarnings(&accounts);
+                let amount=CashFlow::getPotentialEarnings(&solvents);
                 if amount>0.0 {
-                    let potLoss=amount/accounts.len() as f64;
-                    for account in &mut accounts {
+                    let potLoss=amount/(solvents.len() as f64);
+                    for account in solvents {
                         account.pot-=potLoss;
                     }
                     Cache::saveEarnedAmount(amount);

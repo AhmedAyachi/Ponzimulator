@@ -151,7 +151,7 @@ That being said,  choosing the bounds of the two ranges should meet specific con
 |***lowerStartCota*** & ***lowerEndCota*** are < 0|an account must still lose at any time|
 |***upperStartCota*** & ***upperEndCota*** are > 0|an account must still win at any time|
 |***abs(lowerStartCota)*** < ***abs(upperStartCota)*** |an account should be more likely to win at the start|
-|***abs(lowerEndCota)*** > ***abs(upperEndCota)***|an account should be more likely to loose over time|
+|***abs(lowerEndCota)*** > ***abs(upperEndCota)***|an account should be more likely to lose over time|
 |***abs(upperStartCota)*** > ***abs(lowerEndCota)***|an account should be more likely to win on a new deposit|
 |***lowerEndCota*** < ***lowerStartCota***|an account should be losing more over time then at the start to make sure the Net Pot ends up positive|
 
